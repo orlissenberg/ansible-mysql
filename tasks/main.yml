@@ -1,0 +1,43 @@
+---
+# tasks file for ansible-mysql
+
+- apt: name={{ item }}
+  with_items:
+    - python-software-properties
+    - python-mysqldb
+    - mysql-server
+
+- template: src="my.cnf.j2" dest="/etc/mysql/my.cnf" owner=root group=root mode=0644
+  notify: restart-mysql
+
+- name: Update MySQL root user password
+  mysql_user: check_implicit_admin=False name=root host="{{ item }}" password="{{ mysql_root_password }}"
+  when: not (mysql_root_password is undefined or mysql_root_password|trim == "")
+  with_items:
+    - "::1"
+    - "localhost"
+    - "127.0.0.1"
+    - "{{ inventory_hostname }}"
+    - "{{ inventory_hostname_short }}"
+  ignore_errors: yes
+
+- name: Copy .my.cnf file to root home
+  template: src=root.cnf.j2 dest=/root/.my.cnf owner=root group=root mode=0600 force=yes
+  when: not (mysql_root_password is undefined or mysql_root_password|trim == "")
+
+- name: Update MySQL root user password when root/nopassword allowed
+  mysql_user: check_implicit_admin=True name=root password="{{ mysql_root_password }}"
+
+- mysql_user: login_user=root login_password="{{ mysql_root_password }}" host={{ item }} name='' state=absent
+  with_items:
+    - "::1"
+    - "localhost"
+    - "127.0.0.1"
+    - "{{ inventory_hostname }}"
+    - "{{ inventory_hostname_short }}"
+
+- include: mysql-benchmark-tools.yml
+  when: mysql_benchmark_install == true
+
+- include: percona.yml
+  when: percona_install == true
