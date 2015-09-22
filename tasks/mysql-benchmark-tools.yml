@@ -6,12 +6,14 @@
 #  args:
 #    dest: /tmp/dbt2-0.37.50.6.tar.gz
 
+- copy: src=dbt2-0.37.50.6.tar.gz dest=/tmp/dbt2-0.37.50.6.tar.gz owner=root group=root mode=0644
+
 - apt: name={{ item }}
   with_items:
     - libmysqlclient-dev
+    - mytop
+    - sysbench
 #    - libmariadbclient-dev
-
-- shell: wget http://downloads.mysql.com/source/dbt2-0.37.50.6.tar.gz chdir=/tmp
 
 - unarchive: src=/tmp/dbt2-0.37.50.6.tar.gz dest=/tmp
   args:
@@ -23,3 +25,23 @@
 - shell: make chdir={{ mysql_benchmark_build_path }}
 - shell: make check chdir={{ mysql_benchmark_build_path }}
 - shell: make install chdir={{ mysql_benchmark_build_path }}
+
+# Create test data.
+# datagen -w 50 -d /tmp/mysql --mysql
+
+# Deploy test data.
+# sudo /tmp/dbt2-0.37.50.6/scripts/mysql/mysql_load_db.sh --socket /var/run/mysqld/mysqld.sock --path /tmp/mysql --mysql-path /usr/bin/mysql
+
+# Deploy procedures
+# sudo /tmp/dbt2-0.37.50.6/scripts/mysql/mysql_load_sp.sh --socket /var/run/mysqld/mysqld.sock --client-path /usr/bin
+
+# Deploy plans
+# sudo /tmp/dbt2-0.37.50.6/scripts/mysql/mysql_dbt2_plans.sh --client-path /usr/bin --socket /var/run/mysqld/mysqld.sock
+
+# Run test
+# sudo /tmp/dbt2-0.37.50.6/scripts/run_mysql.sh --connections 2 --warehouses 3 --socket /var/run/mysqld/mysqld.sock --lib-client-path /usr/bin/mysql --time 60 --password ...
+
+# Sysbench examples (create dbtest database first):
+
+# sudo sysbench --test=oltp --oltp-table-size=20000 --mysql-db=dbtest --mysql-user=root --mysql-password=... prepare
+# sudo sysbench --test=oltp --oltp-table-size=20000 --oltp-test-mode=complex --num-threads=10 --max-time=60 --mysql-db=dbtest --mysql-user=root --mysql-password=... run
