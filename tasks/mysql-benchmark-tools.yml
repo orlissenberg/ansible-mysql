@@ -2,29 +2,39 @@
 
 # Install the MySQL Benchmark Tools
 
-#- get_url: url=http://downloads.mysql.com/source/dbt2-0.37.50.6.tar.gz mode=0644 sha256sum=﻿f5e44c225c3ea731b0d0f10de1ac550d535419f6498bf3bdb283d7e70df10318
-#  args:
-#    dest: /tmp/dbt2-0.37.50.6.tar.gz
+- name: Download benchmark tools archive
+  get_url: url=http://downloads.mysql.com/source/dbt2-0.37.50.6.tar.gz mode=0644 sha256sum=f5e44c225c3ea731b0d0f10de1ac550d535419f6498bf3bdb283d7e70df10318
+  args:
+    dest: /tmp/dbt2-0.37.50.6.tar.gz
 
-- copy: src=dbt2-0.37.50.6.tar.gz dest=/tmp/dbt2-0.37.50.6.tar.gz owner=root group=root mode=0644
+- name: Copy benchmark tools archive
+  copy: src=dbt2-0.37.50.6.tar.gz dest=/tmp/dbt2-0.37.50.6.tar.gz owner=root group=root mode=0644
 
-- apt: name={{ item }}
+- name: Install benchmark tools dependencies
+  apt: name={{ item }}
   with_items:
     - libmysqlclient-dev
     - mytop
     - sysbench
-#    - libmariadbclient-dev
 
-- unarchive: src=/tmp/dbt2-0.37.50.6.tar.gz dest=/tmp
+- name: Unarchive benchmark tools
+  unarchive: src=/tmp/dbt2-0.37.50.6.tar.gz dest=/tmp
   args:
     copy: no
     group: "{{ mysql_group }}"
     owner: "{{ mysql_user }}"
 
-- shell: ./configure --with-mysql chdir={{ mysql_benchmark_build_path }}
-- shell: make chdir={{ mysql_benchmark_build_path }}
-- shell: make check chdir={{ mysql_benchmark_build_path }}
-- shell: make install chdir={{ mysql_benchmark_build_path }}
+- name: Compile tools from source step 1.
+  shell: "./configure --with-mysql chdir={{ mysql_benchmark_build_path }}"
+
+- name: Compile tools from source step 2.
+  shell: "make chdir={{ mysql_benchmark_build_path }}"
+
+- name: Compile tools from source step 3.
+  shell: "make check chdir={{ mysql_benchmark_build_path }}"
+
+- name: Compile tools from source step 4.
+  shell: "make install chdir={{ mysql_benchmark_build_path }}"
 
 # Create test data.
 # datagen -w 50 -d /tmp/mysql --mysql

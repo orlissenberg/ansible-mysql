@@ -1,13 +1,15 @@
 ---
 # tasks file for ansible-mysql
 
-- apt: name={{ item }}
+- name: Install apt package dependencies
+  apt: name={{ item }}
   with_items:
     - python-software-properties
     - python-mysqldb
     - mysql-server
 
-- template: src="my.cnf.j2" dest="/etc/mysql/my.cnf" owner=root group=root mode=0644
+- name: Install my.cnf
+  template: src="my.cnf.j2" dest="/etc/mysql/my.cnf" owner=root group=root mode=0644
   notify: restart-mysql
 
 - name: Update MySQL root user password
@@ -28,7 +30,8 @@
 - name: Update MySQL root user password when root/nopassword allowed
   mysql_user: check_implicit_admin=True name=root password="{{ mysql_root_password }}"
 
-- mysql_user: login_user=root login_password="{{ mysql_root_password }}" host={{ item }} name='' state=absent
+- name: Remove insecure users
+  mysql_user: login_user=root login_password="{{ mysql_root_password }}" host={{ item }} name='' state=absent
   with_items:
     - "::1"
     - "localhost"
@@ -36,8 +39,10 @@
     - "{{ inventory_hostname }}"
     - "{{ inventory_hostname_short }}"
 
-- include: mysql-benchmark-tools.yml
-  when: mysql_benchmark_install == true
+#- name: Install benchmark tools
+#  include: mysql-benchmark-tools.yml
+#  when: mysql_benchmark_install == true
 
-- include: percona.yml
+- name: Include percona tasks
+  include: percona.yml
   when: percona_install == true
