@@ -3,13 +3,13 @@
 echo "Are you sure? Got backups?"
 exit 1
 
-apt-get purge python-mysqldb mysql-server -y
+apt-get purge mysql-server -y
 
 #cd /tmp/percona-toolkit-3.0.3
 #sudo make uninstall
 
-unlink /usr/local/bin/glide 2> /dev/null
-unlink /usr/local/bin/govendor 2> /dev/null
+rm /var/lib/mysql -R 2> /dev/null
+
 unlink /usr/local/bin/pt-align 2> /dev/null
 unlink /usr/local/bin/pt-archiver 2> /dev/null
 unlink /usr/local/bin/pt-config-diff 2> /dev/null
@@ -44,8 +44,6 @@ unlink /usr/local/bin/pt-table-usage 2> /dev/null
 unlink /usr/local/bin/pt-upgrade 2> /dev/null
 unlink /usr/local/bin/pt-variable-advisor 2> /dev/null
 unlink /usr/local/bin/pt-visual-explain 2> /dev/null
-unlink /usr/local/man/man1/glide.1p 2> /dev/null
-unlink /usr/local/man/man1/govendor.1p 2> /dev/null
 unlink /usr/local/man/man1/percona-toolkit.1p 2> /dev/null
 unlink /usr/local/man/man1/pt-align.1p 2> /dev/null
 unlink /usr/local/man/man1/pt-archiver.1p 2> /dev/null
