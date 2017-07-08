@@ -1,19 +1,27 @@
 ---
 # tasks file for ansible-mysql
 
+- name: Remove unnecessary apt packages
+  apt: name={{ item }} state=absent
+  with_items:
+    - python-mysql.connector
+    - libmysqlclient18
+
 - name: Install apt package dependencies
   apt: name={{ item }}
   with_items:
-    - python-software-properties
-    - python-mysqldb
     - mysql-server
+    - python-software-properties
+    - python-pip
+    - python-dev
+    - python-mysqldb
 
 - name: Install my.cnf
   template: src="my.cnf.j2" dest="/etc/mysql/my.cnf" owner=root group=root mode=0644
   notify: restart-mysql
 
 - name: Update MySQL root user password
-  mysql_user: check_implicit_admin=False name=root host="{{ item }}" password="{{ mysql_root_password }}"
+  mysql_user: check_implicit_admin=false name=root host="{{ item }}" password="{{ mysql_root_password }}"
   when: not (mysql_root_password is undefined or mysql_root_password|trim == "")
   with_items:
     - "::1"
